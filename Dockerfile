@@ -8,7 +8,12 @@ RUN apt-get update \
         unzip \
         curl \
     && docker-php-ext-install -j"$(nproc)" mbstring intl opcache zip mysqli pdo_mysql \
-    && a2enmod rewrite headers expires \
+    && for module in mpm_event mpm_worker; do \
+        if [ -e "/etc/apache2/mods-enabled/${module}.load" ]; then a2dismod "$module"; fi; \
+    done \
+    && a2enmod mpm_prefork rewrite headers expires \
+    && [ "$(apache2ctl -M 2>/dev/null | grep -Ec '^[[:space:]]*mpm_(event|worker|prefork)_module')" -eq 1 ] \
+    && apache2ctl configtest \
     && a2dissite 000-default.conf \
     && rm -rf /var/lib/apt/lists/*
 

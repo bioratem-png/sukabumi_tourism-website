@@ -9,12 +9,33 @@ RUN apt-get update \
         curl \
     && docker-php-ext-install -j"$(nproc)" mbstring intl opcache zip mysqli pdo_mysql \
     && for module in mpm_event mpm_worker; do \
-        if [ -e "/etc/apache2/mods-enabled/${module}.load" ]; then a2dismod "$module"; fi; \
+        if [ -e "/etc/apache2/mods-enabled/${module}.load" ] \
+            || [ -L "/etc/apache2/mods-enabled/${module}.load" ] \
+            || [ -e "/etc/apache2/mods-enabled/${module}.conf" ] \
+            || [ -L "/etc/apache2/mods-enabled/${module}.conf" ]; then \
+            a2dismod "$module"; \
+        fi; \
     done \
     && a2enmod mpm_prefork rewrite headers expires \
-    && [ "$(apache2ctl -M 2>/dev/null | grep -Ec '^[[:space:]]*mpm_(event|worker|prefork)_module')" -eq 1 ] \
-    && apache2ctl configtest \
     && a2dissite 000-default.conf \
+    && enabled_mpm_loads="$(find /etc/apache2/mods-enabled -maxdepth 1 -type l -name 'mpm_*.load' -printf '%f\n' | sort)" \
+    && printf 'Enabled MPM load symlinks: %s\n' "$enabled_mpm_loads" \
+    && [ "$enabled_mpm_loads" = "mpm_prefork.load" ] \
+    && for module in mpm_event mpm_worker; do \
+        for suffix in load conf; do \
+            module_file="/etc/apache2/mods-enabled/${module}.${suffix}"; \
+            if [ -e "$module_file" ] || [ -L "$module_file" ]; then \
+                echo "Conflicting Apache module remains enabled: $module_file" >&2; \
+                exit 1; \
+            fi; \
+        done; \
+    done \
+    && apache_modules="$(apache2ctl -M 2>&1)" \
+    && printf '%s\n' "$apache_modules" \
+    && [ "$(printf '%s\n' "$apache_modules" | grep -Ec '^[[:space:]]*mpm_[[:alnum:]_]+_module')" -eq 1 ] \
+    && printf '%s\n' "$apache_modules" | grep -q 'mpm_prefork_module (shared)' \
+    && printf '%s\n' "$apache_modules" | grep -q 'php_module (shared)' \
+    && apache2ctl configtest \
     && rm -rf /var/lib/apt/lists/*
 
 ENV APP_ENV=production \

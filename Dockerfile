@@ -29,8 +29,7 @@ COPY docker/entrypoint.sh /usr/local/bin/render-entrypoint
 COPY . /var/www/html/
 COPY data /opt/app/seed-data
 
-RUN a2ensite sukabumi.conf \
-    && chmod +x /usr/local/bin/render-entrypoint \
+RUN chmod +x /usr/local/bin/render-entrypoint \
     && mkdir -p /tmp/sukabumi-data \
     && chown -R www-data:www-data /var/www/html \
     && chown -R www-data:www-data /tmp/sukabumi-data \

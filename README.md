@@ -31,7 +31,8 @@ email addresses or private fields in the public records.
 
 ## Docker build
 
-The project is intended to run behind Apache on the port supplied by Render.
+The project is intended to run behind Apache on the port supplied by Render or
+Railway.
 
 ```powershell
 docker build -t sukabumi-tourism .
@@ -42,6 +43,20 @@ Open `http://localhost:10000/`.
 
 The container includes PHP 8.3, Apache, `mbstring`, `intl`, `zip`, `mysqli`,
 `pdo_mysql`, and OPcache. The app itself does not require a database.
+
+## Railway deployment
+
+Railway builds and runs the Docker image remotely. You do not need to install
+Docker or change your local XAMPP setup. Create a Railway service from this
+repository and use its `Dockerfile`. Railway supplies `PORT`; the container
+entrypoint configures Apache's listener and virtual host for that port, then
+runs `apache2ctl configtest` before starting Apache.
+
+If Railway reports the service as unavailable, confirm its public networking
+target uses the service's `PORT` and check deploy logs for the Apache
+configuration test output. JSON letter and complaint submissions use temporary
+container storage and may be lost when Railway replaces or restarts the
+container.
 
 ## Render deployment
 

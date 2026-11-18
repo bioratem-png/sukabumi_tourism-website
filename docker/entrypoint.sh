@@ -4,9 +4,12 @@ set -eu
 PORT="${PORT:-10000}"
 
 printf "Listen %s\n" "$PORT" > /etc/apache2/ports.conf
+VHOST_PATH=/etc/apache2/sites-enabled/sukabumi.conf
 sed "s/<VirtualHost \*:10000>/<VirtualHost *:${PORT}>/" \
     /etc/apache2/sites-available/sukabumi.conf \
-    > /etc/apache2/sites-enabled/sukabumi.conf
+    > "${VHOST_PATH}.tmp"
+mv "${VHOST_PATH}.tmp" "$VHOST_PATH"
+apache2ctl configtest
 
 DATA_DIR="${SUBMISSION_DATA_DIR:-/tmp/sukabumi-data}"
 mkdir -p "$DATA_DIR"

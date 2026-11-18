@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: sukabumi-tourism-website
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /
+    autoDeploy: false
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: SUBMISSION_DATA_DIR
+        value: /var/www/html/data
+    disk:
+      name: sukabumi-submission-data
+      mountPath: /var/www/html/data
+      sizeGB: 1

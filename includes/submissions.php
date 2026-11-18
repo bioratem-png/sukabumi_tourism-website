@@ -30,7 +30,10 @@ function submission_path($type) {
         throw new InvalidArgumentException('Unsupported submission type.');
     }
 
-    $directory = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'data';
+    $configuredDirectory = getenv('SUBMISSION_DATA_DIR');
+    $directory = is_string($configuredDirectory) && trim($configuredDirectory) !== ''
+        ? rtrim($configuredDirectory, DIRECTORY_SEPARATOR)
+        : dirname(__DIR__) . DIRECTORY_SEPARATOR . 'data';
     if (!is_dir($directory) && !mkdir($directory, 0700, true) && !is_dir($directory)) {
         error_log('Unable to create the visitor submission data directory.');
         throw new RuntimeException('Submission storage is unavailable.');

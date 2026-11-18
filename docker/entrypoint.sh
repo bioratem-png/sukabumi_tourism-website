@@ -9,6 +9,13 @@ sed "s/<VirtualHost \*:10000>/<VirtualHost *:${PORT}>/" \
     /etc/apache2/sites-available/sukabumi.conf \
     > "${VHOST_PATH}.tmp"
 mv "${VHOST_PATH}.tmp" "$VHOST_PATH"
+if [ -e /etc/apache2/mods-enabled/mpm_event.load ] || [ -L /etc/apache2/mods-enabled/mpm_event.load ]; then
+    a2dismod mpm_event
+fi
+if [ -e /etc/apache2/mods-enabled/mpm_worker.load ] || [ -L /etc/apache2/mods-enabled/mpm_worker.load ]; then
+    a2dismod mpm_worker
+fi
+a2enmod mpm_prefork
 apache2ctl configtest
 
 DATA_DIR="${SUBMISSION_DATA_DIR:-/tmp/sukabumi-data}"

@@ -13,7 +13,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 ENV APP_ENV=production \
-    SUBMISSION_DATA_DIR=/var/www/html/data
+    SUBMISSION_DATA_DIR=/tmp/sukabumi-data
 
 WORKDIR /var/www/html
 
@@ -26,9 +26,10 @@ COPY data /opt/app/seed-data
 
 RUN a2ensite sukabumi.conf \
     && chmod +x /usr/local/bin/render-entrypoint \
-    && mkdir -p /var/www/html/data \
+    && mkdir -p /tmp/sukabumi-data \
     && chown -R www-data:www-data /var/www/html \
-    && chmod 0750 /var/www/html/data
+    && chown -R www-data:www-data /tmp/sukabumi-data \
+    && chmod 0750 /tmp/sukabumi-data
 
 EXPOSE 10000
 

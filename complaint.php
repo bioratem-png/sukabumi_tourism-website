@@ -149,6 +149,7 @@ include __DIR__ . '/includes/header.php';
           <small>Your email is stored privately and is not shown with your report.</small>
         </div>
         <p class="privacy-note">The place, issue type, and description are public. Do not include personal or sensitive information in your report.</p>
+        <p class="privacy-note notice--warning"><strong>Temporary storage notice:</strong> On this free hosting deployment, submitted reports may be removed after a server restart or redeployment.</p>
         <button class="btn" type="submit"<?= $storageError || $token === '' ? ' disabled' : '' ?>>Submit report</button>
       </form>
     </div>

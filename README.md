@@ -50,21 +50,22 @@ The container includes PHP 8.3, Apache, `mbstring`, `intl`, `zip`, `mysqli`,
 1. Push this repository to GitHub.
 2. In Render, select **New > Blueprint** and connect the repository.
 3. Render reads `render.yaml` and creates the Docker web service.
-4. Attach the persistent disk named `sukabumi-submission-data`:
-   - Mount path: `/var/www/html/data`
-   - Minimum size: 1 GB
+4. Select or confirm the `free` service plan.
+5. Do not attach a disk or add a paid database. The free plan is sufficient for
+   the website and its temporary JSON submissions.
 
-The disk mount is essential. Letter and complaint submissions are JSON files.
-The container filesystem is temporary and should not be used as permanent
-submission storage.
+Letter and complaint submissions are stored temporarily in
+`/tmp/sukabumi-data`. Records may disappear after a service restart,
+redeployment, instance replacement, or other container lifecycle event.
+This free configuration does not provide durable submission storage.
 
 If you prefer to create the service manually:
 
 - Runtime: **Docker**
 - Dockerfile path: `./Dockerfile`
 - Health check path: `/`
+- Plan: **Free**
 - Docker service port: Render sets it automatically
-- Disk mount path: `/var/www/html/data`
 
 ### 2. Environment variables
 
@@ -73,7 +74,7 @@ No secrets are required for the current application.
 | Variable | Required value | Purpose |
 | --- | --- | --- |
 | `APP_ENV` | `production` | Selects production configuration |
-| `SUBMISSION_DATA_DIR` | `/var/www/html/data` | Location of the persistent JSON files |
+| `SUBMISSION_DATA_DIR` | `/tmp/sukabumi-data` | Location of the temporary JSON files |
 
 Render also supplies `PORT` at runtime.
 
@@ -81,23 +82,24 @@ Do not add secrets to `render.yaml`, Docker images, committed PHP files, or
 GitHub. If credentials are added to a future integration, configure them only
 as Render environment variables.
 
-### 3. Persistent submission files
+### 3. Temporary submission files
 
-At startup, `docker/entrypoint.sh` creates `/var/www/html/data`, seeds
+At startup, `docker/entrypoint.sh` creates `/tmp/sukabumi-data`, seeds
 `letters.json` and `complaints.json` only if they do not exist, and gives the
 Apache user ownership of the directory.
 
 The files continue to use the existing structure:
 
-- The public website reads and writes `data/letters.json`
-- The public website reads and writes `data/complaints.json`
+- The public website reads and writes temporary `letters.json`
+- The public website reads and writes temporary `complaints.json`
 - Apache denies direct HTTP access to the `data` directory
 - Submission emails are stored only as private form fields and are not rendered
   in the public cards
+- Submissions are not permanently retained on the free plan
 
-Before the first deployment, the existing JSON files should be committed. If
-the Render disk is new, the container seeds them once. Existing records on the
-disk are never overwritten by the entrypoint.
+Before the first deployment, the existing JSON files should be committed. Each
+new container instance seeds its temporary files once. Existing records in the
+currently running container are not overwritten by the entrypoint.
 
 ## Security and production behaviour
 
@@ -125,4 +127,5 @@ After deployment, test:
 2. `/destination.php`, `/city.php`, and `/culinary.php` load.
 3. `/letters.php` submits and shows a letter.
 4. `/complaint.php` submits and shows a complaint.
-5. Each submitted record remains available after a service redeploy or restart.
+5. Each submitted record remains available while the current container instance
+   is running. It may be lost after a redeploy or restart.

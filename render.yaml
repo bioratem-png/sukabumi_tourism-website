@@ -4,13 +4,10 @@ services:
     runtime: docker
     dockerfilePath: ./Dockerfile
     healthCheckPath: /
+    plan: free
     autoDeploy: false
     envVars:
       - key: APP_ENV
         value: production
       - key: SUBMISSION_DATA_DIR
-        value: /var/www/html/data
-    disk:
-      name: sukabumi-submission-data
-      mountPath: /var/www/html/data
-      sizeGB: 1
+        value: /tmp/sukabumi-data

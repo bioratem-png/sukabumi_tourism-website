@@ -127,6 +127,7 @@ include __DIR__ . '/includes/header.php';
           <small>Your email is stored privately and is not shown with your letter.</small>
         </div>
         <p class="privacy-note">Your subject and letter are public. Do not include phone numbers, addresses, or other private information in the letter.</p>
+        <p class="privacy-note notice--warning"><strong>Temporary storage notice:</strong> On this free hosting deployment, submitted letters may be removed after a server restart or redeployment.</p>
         <button class="btn" type="submit"<?= $storageError || $token === '' ? ' disabled' : '' ?>>Submit letter</button>
       </form>
     </div>

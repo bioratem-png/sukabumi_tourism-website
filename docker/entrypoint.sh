@@ -8,23 +8,24 @@ sed "s/<VirtualHost \*:10000>/<VirtualHost *:${PORT}>/" \
     /etc/apache2/sites-available/sukabumi.conf \
     > /etc/apache2/sites-enabled/sukabumi.conf
 
-mkdir -p /var/www/html/data
+DATA_DIR="${SUBMISSION_DATA_DIR:-/tmp/sukabumi-data}"
+mkdir -p "$DATA_DIR"
 
-# A Render disk is mounted empty on first use. Seed the existing JSON structure
-# once, while preserving submissions that have already been written to the disk.
+# Seed the existing JSON structure on each new container instance. The free
+# Render container filesystem is temporary and records disappear on restart or redeploy.
 for file in letters.json complaints.json; do
-    if [ ! -f "/var/www/html/data/$file" ]; then
+    if [ ! -f "$DATA_DIR/$file" ]; then
         if [ -f "/opt/app/seed-data/$file" ]; then
-            cp "/opt/app/seed-data/$file" "/var/www/html/data/$file"
+            cp "/opt/app/seed-data/$file" "$DATA_DIR/$file"
         else
-            printf '[]\n' > "/var/www/html/data/$file"
+            printf '[]\n' > "$DATA_DIR/$file"
         fi
     fi
 done
 
-chown -R www-data:www-data /var/www/html/data
-chmod 0750 /var/www/html/data
-chmod 0660 /var/www/html/data/*.json
+chown -R www-data:www-data "$DATA_DIR"
+chmod 0750 "$DATA_DIR"
+chmod 0660 "$DATA_DIR"/*.json
 
 # Render provides HTTPS at the edge. PHP can use this for secure session cookies.
 if [ "${RENDER:-}" = "true" ] || [ -n "${RENDER_EXTERNAL_HOSTNAME:-}" ]; then
